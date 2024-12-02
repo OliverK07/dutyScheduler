@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排班結果</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>排班結果</h1>
+    <table>
+        <tr>
+            <th>週次</th>
+            <th>第一順位</th>
+            <th>第二順位</th>
+        </tr>
+        {% for row in schedule %}
+        <tr>
+            <td>{{ row.week }}</td>
+            <td>{{ row.first_priority }}</td>
+            <td>{{ row.second_priority }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>統計資訊</h2>
+    <p>最長間隔：{{ longest.interval }} 天，值班人員：{{ longest.name }}</p>
+    <p>最短間隔：{{ shortest.interval }} 天，值班人員：{{ shortest.name }}</p>
+
+    <a href="/">返回首頁</a>
+</body>
+</html>
+
