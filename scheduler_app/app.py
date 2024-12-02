@@ -1,10 +1,30 @@
-from flask import Flask, render_template, request, redirect, url_for
+import os
+import platform
+from flask import Flask, render_template, request
 import csv
 import datetime
 from collections import deque, defaultdict
 import random
+import sys
 
-app = Flask(__name__)
+# 判別系統平台
+CURRENT_PLATFORM = platform.system()
+
+# 動態獲取基礎路徑
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# 根據系統設置路徑分隔符（Windows: ;，macOS/Linux: :）
+if CURRENT_PLATFORM == "Windows":
+    PATH_SEPARATOR = ";"
+else:  # macOS 或其他系統
+    PATH_SEPARATOR = ":"
+
+# Flask 應用初始化
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "templates"),
+    static_folder=os.path.join(BASE_DIR, "static"),
+)
 
 def read_personnel(file_path):
     """從檔案讀取人員名單"""
@@ -62,7 +82,7 @@ def generate_schedule(personnel, start_date, weeks=26):
     current_date = start_date
     current_week = 0
 
-    # 將所有人員放入臨時列表並記錄新人
+    # 將所有人員放入臨��列表並記錄新人
     all_staff = []
     for person in personnel:
         all_staff.append(person["name"])
@@ -178,13 +198,25 @@ def generate_schedule(personnel, start_date, weeks=26):
     
     return schedule, intervals
 
+def get_resource_path(relative_path):
+    """獲取資源文件的絕對路徑"""
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller 創建臨時文件夾，將路徑存儲在 _MEIPASS 中
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, relative_path)
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         # 取得用戶輸入的資料
         weeks = int(request.form["weeks"])
         start_date = datetime.datetime.strptime(request.form["start_date"], "%Y-%m-%d").date()
-        personnel = read_personnel("personnel.csv")
+        
+        # 使用 get_resource_path 獲取 personnel.csv 的正確路徑
+        personnel_path = get_resource_path('personnel.csv')
+        personnel = read_personnel(personnel_path)
         
         # 生成排班表
         schedule, intervals = generate_schedule(personnel, start_date, weeks)
